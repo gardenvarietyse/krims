@@ -1,7 +1,14 @@
 export enum TokenType {
   Integer = 'Integer',
-  Addition = 'Addition',
+  Arithmetic = 'Arithmetic',
   EOF = 'EOF',
+}
+
+export enum ArithmeticType {
+  Addition = 'Addition',
+  Subtraction = 'Subtraction',
+  Multiplication = 'Multiplication',
+  Division = 'Division',
 }
 
 export class Token {
