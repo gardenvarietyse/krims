@@ -89,7 +89,7 @@ export class Interpreter {
       }
     } else {
       this.error(
-        `unexpected token; ${this.current_token?.type} != ${token_type}`
+        `unexpected token; ${this.current_token?.type} ≠ ${token_type}`
       );
     }
   }
