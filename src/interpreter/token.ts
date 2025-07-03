@@ -1,4 +1,5 @@
 export enum TokenType {
+  Whitespace = 'Whitespace',
   Integer = 'Integer',
   Arithmetic = 'Arithmetic',
   EOF = 'EOF',

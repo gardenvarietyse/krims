@@ -27,8 +27,11 @@ export class Interpreter {
     const current_char = text[this.position];
 
     if (IgnoreWhitespaceRegex.test(current_char)) {
+      const token = new Token(TokenType.Whitespace, current_char);
+
       this.position += 1;
-      return this.get_next_token();
+
+      return token;
     }
 
     if (/\d/.test(current_char)) {
@@ -62,8 +65,14 @@ export class Interpreter {
   }
 
   eat(token_type: TokenType): void {
-    if (this.current_token?.type === token_type) {
+    const current_type = this.current_token?.type;
+
+    if (current_type === token_type) {
       this.current_token = this.get_next_token();
+
+      while (this.current_token?.type === TokenType.Whitespace) {
+        this.current_token = this.get_next_token();
+      }
     } else {
       this.error(
         `unexpected token; ${this.current_token?.type} != ${token_type}`
