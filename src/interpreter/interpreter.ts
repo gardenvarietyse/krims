@@ -1,8 +1,10 @@
-import { is_digit, is_number } from './test';
+import {
+  is_arithmetic_operator,
+  is_digit,
+  is_number,
+  is_whitespace,
+} from './test';
 import { ArithmeticType, Token, TokenType } from './token';
-
-const ArithmeticOperatorRegex = /[+\-*/]/;
-const IgnoreWhitespaceRegex = /[\t\f\cK ]/;
 
 export class Interpreter {
   text: string;
@@ -27,7 +29,7 @@ export class Interpreter {
 
     const current_char = text[this.position];
 
-    if (IgnoreWhitespaceRegex.test(current_char)) {
+    if (is_whitespace(current_char)) {
       const token = new Token(TokenType.Whitespace, current_char);
 
       this.position += 1;
@@ -57,7 +59,7 @@ export class Interpreter {
       return token;
     }
 
-    if (ArithmeticOperatorRegex.test(current_char)) {
+    if (is_arithmetic_operator(current_char)) {
       const arithmeticType = {
         '+': ArithmeticType.Addition,
         '-': ArithmeticType.Subtraction,
