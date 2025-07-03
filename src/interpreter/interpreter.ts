@@ -35,12 +35,23 @@ export class Interpreter {
     }
 
     if (/\d/.test(current_char)) {
-      const token = new Token(
-        TokenType.Integer,
-        Number.parseInt(current_char, 10)
-      );
+      const digits = [current_char];
+
+      for (let i = this.position + 1; i < text.length; i++) {
+        if (/\d/.test(text[i])) {
+          digits.push(text[i]);
+          this.position += 1;
+        } else {
+          break;
+        }
+      }
 
       this.position += 1;
+
+      const token = new Token(
+        TokenType.Integer,
+        Number.parseInt(digits.join(''), 10)
+      );
 
       return token;
     }

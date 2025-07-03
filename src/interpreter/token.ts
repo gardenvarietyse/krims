@@ -22,6 +22,6 @@ export class Token {
   }
 
   toString(): string {
-    return `Token(${this.type}, ${this.value})`;
+    return `(${this.type}, ${this.value})`;
   }
 }
