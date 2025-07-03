@@ -1,3 +1,4 @@
+import { is_digit, is_number } from './test';
 import { ArithmeticType, Token, TokenType } from './token';
 
 const ArithmeticOperatorRegex = /[+\-*/]/;
@@ -34,11 +35,11 @@ export class Interpreter {
       return token;
     }
 
-    if (/\d/.test(current_char)) {
+    if (is_digit(current_char)) {
       const digits = [current_char];
 
       for (let i = this.position + 1; i < text.length; i++) {
-        if (/\d/.test(text[i])) {
+        if (is_number(text[i])) {
           digits.push(text[i]);
           this.position += 1;
         } else {
@@ -49,8 +50,8 @@ export class Interpreter {
       this.position += 1;
 
       const token = new Token(
-        TokenType.Integer,
-        Number.parseInt(digits.join(''), 10)
+        TokenType.Number,
+        Number.parseFloat(digits.join(''))
       );
 
       return token;
@@ -95,13 +96,13 @@ export class Interpreter {
     this.current_token = this.get_next_token();
 
     const left = this.current_token;
-    this.eat(TokenType.Integer);
+    this.eat(TokenType.Number);
 
     const op = this.current_token;
     this.eat(TokenType.Arithmetic);
 
     const right = this.current_token;
-    this.eat(TokenType.Integer);
+    this.eat(TokenType.Number);
 
     return this.arithmetic(Number(left.value), Number(right.value), op);
   }
