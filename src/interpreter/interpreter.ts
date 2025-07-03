@@ -97,16 +97,44 @@ export class Interpreter {
   expr(): number {
     this.current_token = this.get_next_token();
 
-    const left = this.current_token;
-    this.eat(TokenType.Number);
+    let tokens: Token[] = [];
+    let expected_type = TokenType.Number;
 
-    const op = this.current_token;
-    this.eat(TokenType.Arithmetic);
+    while (this.current_token?.type !== TokenType.EOF) {
+      const token = this.current_token;
+      this.eat(expected_type);
 
-    const right = this.current_token;
-    this.eat(TokenType.Number);
+      tokens.push(token);
+      expected_type =
+        expected_type === TokenType.Number
+          ? TokenType.Arithmetic
+          : TokenType.Number;
+    }
 
-    return this.arithmetic(Number(left.value), Number(right.value), op);
+    if (tokens.length < 3) {
+      this.error('need at least 3 tokens');
+    }
+
+    if (tokens[tokens.length - 1].type !== TokenType.Number) {
+      this.error('expression must end with number');
+    }
+
+    while (tokens.length > 1) {
+      const [left, op, right, ...rest] = tokens;
+
+      const result = this.arithmetic(
+        Number(left.value),
+        Number(right.value),
+        op
+      );
+      tokens = [new Token(TokenType.Number, result), ...rest];
+    }
+
+    if (tokens.length !== 1 || tokens[0].type !== TokenType.Number) {
+      this.error('expression did not resolve to a single number');
+    }
+
+    return Number(tokens[0].value);
   }
 
   arithmetic(left: number, right: number, op: Token): number {
