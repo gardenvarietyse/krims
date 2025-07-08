@@ -31,6 +31,9 @@ export class Interpreter {
     }
   }
 
+  // expr   : (factor Arithmetic factor) (Arithmetic factor)*
+  // factor : Number
+
   expr(): number {
     this.current_token = this.lexer.get_next_token();
 
