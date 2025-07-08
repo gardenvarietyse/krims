@@ -59,26 +59,29 @@ export class Interpreter {
   // term   : factor ((MUL|DIV) factor)*;
   // factor : Number;
 
-  //
   factor(): number {
     const value = this.current_token.value;
     this.eat(TokenType.Number);
 
     this.log('factor: ', value);
+
     return value as number;
   }
 
   plusMinus(): TokenType.Plus | TokenType.Minus {
     const token_type = this.current_token.type;
     this.eat(TokenType.Plus, TokenType.Minus);
+
     this.log('plusMinus');
     this.log('-> ', token_type, '\n');
+
     return token_type as TokenType.Plus | TokenType.Minus;
   }
 
   multiplyDivide(): TokenType.Multiply | TokenType.Divide {
     const token_type = this.current_token.type;
     this.eat(TokenType.Multiply, TokenType.Divide);
+
     this.log('multiplyDivide');
     this.log('-> ', token_type, '\n');
 
@@ -88,6 +91,7 @@ export class Interpreter {
   term(): number {
     this.log('term');
     this.tab();
+
     let result = this.factor();
 
     while (
@@ -100,12 +104,14 @@ export class Interpreter {
 
     this.untab();
     this.log('->', result, '\n');
+
     return result;
   }
 
   expr(): number {
     this.log('expr');
     this.tab();
+
     let result = this.term();
 
     while (
@@ -118,6 +124,7 @@ export class Interpreter {
 
     this.untab();
     this.log('->', result, '\n');
+
     return result;
   }
 
