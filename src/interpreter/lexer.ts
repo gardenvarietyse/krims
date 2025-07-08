@@ -28,7 +28,7 @@ export class Lexer {
     const text = this.text;
 
     if (this._position > text.length - 1) {
-      return new Token(TokenType.EOF, '');
+      return new Token(TokenType.EOF);
     }
 
     const current_char = text[this._position];

@@ -3,12 +3,14 @@ import { ArithmeticType, Token, TokenType } from './token';
 
 export class Interpreter {
   text: string;
-  current_token?: Token;
+  current_token: Token = new Token(TokenType.SOF);
   lexer: Lexer;
 
   constructor(text: string) {
     this.text = text;
     this.lexer = new Lexer(text);
+
+    this.eat(TokenType.SOF);
   }
 
   error(msg = 'syntax error'): never {
@@ -16,68 +18,52 @@ export class Interpreter {
   }
 
   eat(token_type: TokenType): void {
-    const current_type = this.current_token?.type;
+    const current_type = this.current_token.type;
 
     if (current_type === token_type) {
       this.current_token = this.lexer.get_next_token();
 
-      while (this.current_token?.type === TokenType.Whitespace) {
+      while (this.current_token.type === TokenType.Whitespace) {
         this.current_token = this.lexer.get_next_token();
       }
     } else {
       this.error(
-        `unexpected token; ${this.current_token?.type} ≠ ${token_type}`
+        `unexpected token; ${this.current_token.type} ≠ ${token_type}`
       );
     }
   }
 
-  // expr   : (factor Arithmetic factor) (Arithmetic factor)*
-  // factor : Number
+  // expr   : factor (Arithmetic factor)*;
+  // factor : Number;
+
+  factor(): void {
+    this.eat(TokenType.Number);
+  }
+
+  arithmetic(): void {
+    this.eat(TokenType.Arithmetic);
+  }
 
   expr(): number {
-    this.current_token = this.lexer.get_next_token();
+    let result: number = this.current_token.value as number;
+    this.factor();
 
-    let tokens: Token[] = [];
-    let expected_type = TokenType.Number;
-
-    while (this.current_token?.type !== TokenType.EOF) {
-      const token = this.current_token;
-      this.eat(expected_type);
-
-      tokens.push(token);
-      expected_type =
-        expected_type === TokenType.Number
-          ? TokenType.Arithmetic
-          : TokenType.Number;
-    }
-
-    if (tokens.length < 3) {
-      this.error('need at least 3 tokens');
-    }
-
-    if (tokens[tokens.length - 1].type !== TokenType.Number) {
-      this.error('expression must end with number');
-    }
-
-    while (tokens.length > 1) {
-      const [left, op, right, ...rest] = tokens;
-
-      const result = this.arithmetic(
-        Number(left.value),
-        Number(right.value),
+    while (this.current_token.type === TokenType.Arithmetic) {
+      const op = this.current_token;
+      this.eat(TokenType.Arithmetic);
+      result = this.perform_arithmetic(
+        result,
+        this.current_token.value as number,
         op
       );
-      tokens = [new Token(TokenType.Number, result), ...rest];
+
+      this.factor();
     }
 
-    if (tokens.length !== 1 || tokens[0].type !== TokenType.Number) {
-      this.error('expression did not resolve to a single number');
-    }
-
-    return Number(tokens[0].value);
+    return result;
   }
 
-  arithmetic(left: number, right: number, op: Token): number {
+  perform_arithmetic(left: number, right: number, op: Token): number {
     switch (op.value) {
       case ArithmeticType.Addition:
         return left + right;

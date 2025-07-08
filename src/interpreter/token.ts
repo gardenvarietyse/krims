@@ -1,4 +1,5 @@
 export enum TokenType {
+  SOF = 'SOF',
   Whitespace = 'Whitespace',
   Number = 'Number',
   Arithmetic = 'Arithmetic',
@@ -14,9 +15,9 @@ export enum ArithmeticType {
 
 export class Token {
   type: TokenType;
-  value: string | number;
+  value?: string | number;
 
-  constructor(type: TokenType, value: string | number) {
+  constructor(type: TokenType, value?: string | number) {
     this.type = type;
     this.value = value;
   }
