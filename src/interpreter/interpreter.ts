@@ -1,91 +1,28 @@
-import {
-  is_arithmetic_operator,
-  is_digit,
-  is_number,
-  is_whitespace,
-} from './test';
+import { Lexer } from './lexer';
 import { ArithmeticType, Token, TokenType } from './token';
 
 export class Interpreter {
   text: string;
-  position: number;
   current_token?: Token;
+  lexer: Lexer;
 
   constructor(text: string) {
     this.text = text;
-    this.position = 0;
+    this.lexer = new Lexer(text);
   }
 
   error(msg = 'syntax error'): never {
-    throw new Error(`${msg} @ ${this.position}`);
-  }
-
-  get_next_token(): Token {
-    const text = this.text;
-
-    if (this.position > text.length - 1) {
-      return new Token(TokenType.EOF, '');
-    }
-
-    const current_char = text[this.position];
-
-    if (is_whitespace(current_char)) {
-      const token = new Token(TokenType.Whitespace, current_char);
-
-      this.position += 1;
-
-      return token;
-    }
-
-    if (is_digit(current_char)) {
-      const digits = [current_char];
-
-      for (let i = this.position + 1; i < text.length; i++) {
-        if (is_number(text[i])) {
-          digits.push(text[i]);
-          this.position += 1;
-        } else {
-          break;
-        }
-      }
-
-      this.position += 1;
-
-      const token = new Token(
-        TokenType.Number,
-        Number.parseFloat(digits.join(''))
-      );
-
-      return token;
-    }
-
-    if (is_arithmetic_operator(current_char)) {
-      const arithmeticType = {
-        '+': ArithmeticType.Addition,
-        '-': ArithmeticType.Subtraction,
-        '*': ArithmeticType.Multiplication,
-        '/': ArithmeticType.Division,
-      }[current_char];
-
-      if (!arithmeticType) {
-        this.error('invalid arithmetic operator');
-      }
-
-      this.position += 1;
-      return new Token(TokenType.Arithmetic, arithmeticType);
-    }
-
-    this.error(`unexpected character '${current_char}'`);
+    throw new Error(`${msg} @ ${this.lexer.position()}`);
   }
 
   eat(token_type: TokenType): void {
     const current_type = this.current_token?.type;
 
     if (current_type === token_type) {
-      this.current_token = this.get_next_token();
+      this.current_token = this.lexer.get_next_token();
 
       while (this.current_token?.type === TokenType.Whitespace) {
-        this.current_token = this.get_next_token();
+        this.current_token = this.lexer.get_next_token();
       }
     } else {
       this.error(
@@ -95,7 +32,7 @@ export class Interpreter {
   }
 
   expr(): number {
-    this.current_token = this.get_next_token();
+    this.current_token = this.lexer.get_next_token();
 
     let tokens: Token[] = [];
     let expected_type = TokenType.Number;
