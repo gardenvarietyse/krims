@@ -4,7 +4,7 @@ import {
   is_number,
   is_whitespace,
 } from './test';
-import { ArithmeticType, Token, TokenType } from './token';
+import { Token, TokenType } from './token';
 
 export class Lexer {
   text: string;
@@ -41,6 +41,7 @@ export class Lexer {
       return token;
     }
 
+    // todo: break out into number() function
     if (is_digit(current_char)) {
       const digits = [current_char];
 
@@ -64,19 +65,19 @@ export class Lexer {
     }
 
     if (is_arithmetic_operator(current_char)) {
-      const arithmeticType = {
-        '+': ArithmeticType.Addition,
-        '-': ArithmeticType.Subtraction,
-        '*': ArithmeticType.Multiplication,
-        '/': ArithmeticType.Division,
+      const arithmeticTokenType = {
+        '+': TokenType.Plus,
+        '-': TokenType.Minus,
+        '*': TokenType.Multiply,
+        '/': TokenType.Divide,
       }[current_char];
 
-      if (!arithmeticType) {
+      if (!arithmeticTokenType) {
         this.error('invalid arithmetic operator');
       }
 
       this._position += 1;
-      return new Token(TokenType.Arithmetic, arithmeticType);
+      return new Token(arithmeticTokenType);
     }
 
     this.error(`unexpected character '${current_char}'`);

@@ -2,15 +2,11 @@ export enum TokenType {
   SOF = 'SOF',
   Whitespace = 'Whitespace',
   Number = 'Number',
-  Arithmetic = 'Arithmetic',
+  Plus = 'Plus',
+  Minus = 'Minus',
+  Multiply = 'Multiply',
+  Divide = 'Divide',
   EOF = 'EOF',
-}
-
-export enum ArithmeticType {
-  Addition = 'Addition',
-  Subtraction = 'Subtraction',
-  Multiplication = 'Multiplication',
-  Division = 'Division',
 }
 
 export class Token {

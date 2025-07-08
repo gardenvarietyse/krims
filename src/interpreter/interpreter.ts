@@ -1,10 +1,24 @@
 import { Lexer } from './lexer';
-import { ArithmeticType, Token, TokenType } from './token';
+import { Token, TokenType } from './token';
 
 export class Interpreter {
   text: string;
   current_token: Token = new Token(TokenType.SOF);
   lexer: Lexer;
+
+  indent: number = 0;
+
+  log(...args: any[]): void {
+    console.log(' '.repeat(this.indent), ...args);
+  }
+
+  tab(): void {
+    this.indent += 2;
+  }
+
+  untab(): void {
+    this.indent = Math.max(0, this.indent - 2);
+  }
 
   constructor(text: string) {
     this.text = text;
@@ -17,10 +31,16 @@ export class Interpreter {
     throw new Error(`${msg} @ ${this.lexer.position()}`);
   }
 
-  eat(token_type: TokenType): void {
+  eat(...token_types: TokenType[]): void {
+    // this.log(
+    //   'eat[',
+    //   token_types.join(', '),
+    //   '] ',
+    //   this.current_token.value ?? ''
+    // );
     const current_type = this.current_token.type;
 
-    if (current_type === token_type) {
+    if (token_types.includes(current_type)) {
       this.current_token = this.lexer.get_next_token();
 
       while (this.current_token.type === TokenType.Whitespace) {
@@ -28,57 +48,103 @@ export class Interpreter {
       }
     } else {
       this.error(
-        `unexpected token; ${this.current_token.type} ≠ ${token_type}`
+        `unexpected token; ${this.current_token.type} ≠ ${token_types.join(
+          ', '
+        )}`
       );
     }
   }
 
-  // expr   : factor (Arithmetic factor)*;
+  // expr   : term ((PLUS|MINUS) term)*;
+  // term   : factor ((MUL|DIV) factor)*;
   // factor : Number;
 
-  factor(): void {
+  //
+  factor(): number {
+    const value = this.current_token.value;
     this.eat(TokenType.Number);
+
+    this.log('factor: ', value);
+    return value as number;
   }
 
-  arithmetic(): void {
-    this.eat(TokenType.Arithmetic);
+  plusMinus(): TokenType.Plus | TokenType.Minus {
+    const token_type = this.current_token.type;
+    this.eat(TokenType.Plus, TokenType.Minus);
+    this.log('plusMinus');
+    this.log('-> ', token_type, '\n');
+    return token_type as TokenType.Plus | TokenType.Minus;
   }
 
-  expr(): number {
-    let result: number = this.current_token.value as number;
-    this.factor();
+  multiplyDivide(): TokenType.Multiply | TokenType.Divide {
+    const token_type = this.current_token.type;
+    this.eat(TokenType.Multiply, TokenType.Divide);
+    this.log('multiplyDivide');
+    this.log('-> ', token_type, '\n');
 
-    while (this.current_token.type === TokenType.Arithmetic) {
-      const op = this.current_token;
-      this.eat(TokenType.Arithmetic);
-      result = this.perform_arithmetic(
-        result,
-        this.current_token.value as number,
-        op
-      );
+    return token_type as TokenType.Multiply | TokenType.Divide;
+  }
 
-      this.factor();
+  term(): number {
+    this.log('term');
+    this.tab();
+    let result = this.factor();
+
+    while (
+      [TokenType.Multiply, TokenType.Divide].includes(this.current_token.type)
+    ) {
+      const operation = this.multiplyDivide();
+
+      result = this.perform_arithmetic(result, this.factor(), operation);
     }
 
+    this.untab();
+    this.log('->', result, '\n');
     return result;
   }
 
-  perform_arithmetic(left: number, right: number, op: Token): number {
-    switch (op.value) {
-      case ArithmeticType.Addition:
+  expr(): number {
+    this.log('expr');
+    this.tab();
+    let result = this.term();
+
+    while (
+      [TokenType.Plus, TokenType.Minus].includes(this.current_token.type)
+    ) {
+      const operation = this.plusMinus();
+
+      result = this.perform_arithmetic(result, this.term(), operation);
+    }
+
+    this.untab();
+    this.log('->', result, '\n');
+    return result;
+  }
+
+  perform_arithmetic(
+    left: number,
+    right: number,
+    operationType:
+      | TokenType.Plus
+      | TokenType.Minus
+      | TokenType.Multiply
+      | TokenType.Divide
+  ): number {
+    switch (operationType) {
+      case TokenType.Plus:
         return left + right;
-      case ArithmeticType.Subtraction:
+      case TokenType.Minus:
         return left - right;
-      case ArithmeticType.Multiplication:
+      case TokenType.Multiply:
         return left * right;
-      case ArithmeticType.Division:
+      case TokenType.Divide:
         if (right === 0) {
           this.error('division by zero');
         }
 
         return left / right;
       default:
-        this.error(`unknown operator ${op.value}`);
+        this.error(`unknown operator ${operationType}`);
     }
   }
 }

@@ -1,6 +1,7 @@
 const { createInterface } = require('readline');
 
 import { Interpreter } from './src/interpreter/interpreter';
+import { TokenType } from './src/interpreter/token';
 
 const rl = createInterface({
   input: process.stdin,
@@ -25,7 +26,11 @@ const main = async () => {
 
       const interpreter = new Interpreter(input);
       const result = interpreter.expr();
+
+      interpreter.eat(TokenType.EOF);
+
       console.log(result);
+      console.log('');
     } catch (error) {
       console.error(error);
     }
