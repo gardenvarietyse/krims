@@ -57,11 +57,34 @@ export class Interpreter {
 
   // expr   : term ((PLUS|MINUS) term)*;
   // term   : factor ((MUL|DIV) factor)*;
-  // factor : NUMBER | LPAREN expr RPAREN;
+  // factor : atom (POW factor)*;
+  // atom : NUMBER | LPAREN expr RPAREN;
 
   factor(): number {
+    this.tab();
+
+    var result = this.atom();
+
+    while (this.current_token.type === TokenType.Pow) {
+      this.eat(TokenType.Pow);
+
+      const right = this.factor();
+
+      const previous_result = result;
+      result = this.do_math(result, right, TokenType.Pow);
+      this.log(`  ${previous_result}^${right} = ${result}`);
+    }
+
+    this.log('factor: ', result);
+
+    this.untab();
+
+    return result;
+  }
+
+  atom(): number {
     if (this.current_token.type === TokenType.LeftParen) {
-      this.log('factor: (');
+      this.log('atom: (');
       this.tab();
 
       this.eat(TokenType.LeftParen);
@@ -71,7 +94,7 @@ export class Interpreter {
       this.eat(TokenType.RightParen);
 
       this.untab();
-      this.log('factor: )');
+      this.log('atom: )');
 
       return result;
     }
@@ -79,7 +102,7 @@ export class Interpreter {
     const value = this.current_token.value;
     this.eat(TokenType.Number);
 
-    this.log('factor: ', value);
+    this.log('atom: ', value);
 
     return value as number;
   }
@@ -115,7 +138,7 @@ export class Interpreter {
     ) {
       const operation = this.multiplyDivide();
 
-      result = this.perform_arithmetic(result, this.factor(), operation);
+      result = this.do_math(result, this.factor(), operation);
     }
 
     this.untab();
@@ -135,7 +158,7 @@ export class Interpreter {
     ) {
       const operation = this.plusMinus();
 
-      result = this.perform_arithmetic(result, this.term(), operation);
+      result = this.do_math(result, this.term(), operation);
     }
 
     this.untab();
@@ -144,7 +167,7 @@ export class Interpreter {
     return result;
   }
 
-  perform_arithmetic(
+  do_math(
     left: number,
     right: number,
     operationType:
@@ -152,6 +175,7 @@ export class Interpreter {
       | TokenType.Minus
       | TokenType.Multiply
       | TokenType.Divide
+      | TokenType.Pow
   ): number {
     switch (operationType) {
       case TokenType.Plus:
@@ -166,6 +190,8 @@ export class Interpreter {
         }
 
         return left / right;
+      case TokenType.Pow:
+        return Math.pow(left, right);
       default:
         this.error(`unknown operator ${operationType}`);
     }

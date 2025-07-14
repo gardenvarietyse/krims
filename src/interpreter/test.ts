@@ -8,3 +8,4 @@ export const is_arithmetic_operator = (char: string) =>
   ArithmeticOperatorRegex.test(char);
 export const is_left_paren = (char: string) => char === '(';
 export const is_right_paren = (char: string) => char === ')';
+export const is_pow = (char: string) => char === '^';

@@ -3,6 +3,7 @@ import {
   is_digit,
   is_left_paren,
   is_number,
+  is_pow,
   is_right_paren,
   is_whitespace,
 } from './test';
@@ -90,6 +91,11 @@ export class Lexer {
     if (is_right_paren(current_char)) {
       this._position += 1;
       return new Token(TokenType.RightParen);
+    }
+
+    if (is_pow(current_char)) {
+      this._position += 1;
+      return new Token(TokenType.Pow);
     }
 
     this.error(`unexpected character '${current_char}'`);
