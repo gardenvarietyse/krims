@@ -60,28 +60,6 @@ export class Interpreter {
   // factor : atom (POW factor)*;
   // atom : NUMBER | LPAREN expr RPAREN;
 
-  factor(): number {
-    this.tab();
-
-    var result = this.atom();
-
-    while (this.current_token.type === TokenType.Pow) {
-      this.eat(TokenType.Pow);
-
-      const right = this.factor();
-
-      const previous_result = result;
-      result = this.do_math(result, right, TokenType.Pow);
-      this.log(`  ${previous_result}^${right} = ${result}`);
-    }
-
-    this.log('factor: ', result);
-
-    this.untab();
-
-    return result;
-  }
-
   atom(): number {
     if (this.current_token.type === TokenType.LeftParen) {
       this.log('atom: (');
@@ -107,14 +85,26 @@ export class Interpreter {
     return value as number;
   }
 
-  plusMinus(): TokenType.Plus | TokenType.Minus {
-    const token_type = this.current_token.type;
-    this.eat(TokenType.Plus, TokenType.Minus);
+  factor(): number {
+    this.tab();
 
-    this.log('plusMinus');
-    this.log('-> ', token_type, '\n');
+    var result = this.atom();
 
-    return token_type as TokenType.Plus | TokenType.Minus;
+    while (this.current_token.type === TokenType.Pow) {
+      this.eat(TokenType.Pow);
+
+      const right = this.factor();
+
+      const previous_result = result;
+      result = this.do_math(result, right, TokenType.Pow);
+      this.log(`  ${previous_result}^${right} = ${result}`);
+    }
+
+    this.log('factor: ', result);
+
+    this.untab();
+
+    return result;
   }
 
   multiplyDivide(): TokenType.Multiply | TokenType.Divide {
@@ -145,6 +135,16 @@ export class Interpreter {
     this.log('->', result, '\n');
 
     return result;
+  }
+
+  plusMinus(): TokenType.Plus | TokenType.Minus {
+    const token_type = this.current_token.type;
+    this.eat(TokenType.Plus, TokenType.Minus);
+
+    this.log('plusMinus');
+    this.log('-> ', token_type, '\n');
+
+    return token_type as TokenType.Plus | TokenType.Minus;
   }
 
   expr(): number {
