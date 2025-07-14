@@ -1,7 +1,9 @@
 import {
   is_arithmetic_operator,
   is_digit,
+  is_left_paren,
   is_number,
+  is_right_paren,
   is_whitespace,
 } from './test';
 import { Token, TokenType } from './token';
@@ -78,6 +80,16 @@ export class Lexer {
 
       this._position += 1;
       return new Token(arithmeticTokenType);
+    }
+
+    if (is_left_paren(current_char)) {
+      this._position += 1;
+      return new Token(TokenType.LeftParen);
+    }
+
+    if (is_right_paren(current_char)) {
+      this._position += 1;
+      return new Token(TokenType.RightParen);
     }
 
     this.error(`unexpected character '${current_char}'`);

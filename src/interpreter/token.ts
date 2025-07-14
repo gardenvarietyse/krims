@@ -6,6 +6,8 @@ export enum TokenType {
   Minus = 'Minus',
   Multiply = 'Multiply',
   Divide = 'Divide',
+  LeftParen = 'LeftParen',
+  RightParen = 'RightParen',
   EOF = 'EOF',
 }
 

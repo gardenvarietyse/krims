@@ -57,9 +57,25 @@ export class Interpreter {
 
   // expr   : term ((PLUS|MINUS) term)*;
   // term   : factor ((MUL|DIV) factor)*;
-  // factor : Number;
+  // factor : NUMBER | LPAREN expr RPAREN;
 
   factor(): number {
+    if (this.current_token.type === TokenType.LeftParen) {
+      this.log('factor: (');
+      this.tab();
+
+      this.eat(TokenType.LeftParen);
+
+      const result = this.expr();
+
+      this.eat(TokenType.RightParen);
+
+      this.untab();
+      this.log('factor: )');
+
+      return result;
+    }
+
     const value = this.current_token.value;
     this.eat(TokenType.Number);
 
