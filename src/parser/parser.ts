@@ -57,7 +57,7 @@ export class Parser {
     return expr;
   }
 
-  // factor : atom (POW expr)*;
+  // factor : atom (POW factor)*;
 
   factor(): Number | BinaryOp {
     var left = this.atom();
@@ -69,7 +69,7 @@ export class Parser {
     const pow_token = this.current_token;
 
     this.eat(TokenType.Pow);
-    const right = this.expr();
+    const right = this.factor();
 
     return new BinaryOp(left, right, TokenType.Pow, pow_token);
   }
