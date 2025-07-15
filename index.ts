@@ -1,7 +1,9 @@
 const { createInterface } = require('readline');
 
 import { Interpreter } from './src/interpreter/interpreter';
-import { TokenType } from './src/interpreter/token';
+import { Lexer } from './src/lexer/lexer';
+import { TokenType } from './src/lexer/token';
+import { Parser } from './src/parser/parser';
 
 const rl = createInterface({
   input: process.stdin,
@@ -24,11 +26,13 @@ const main = async () => {
         continue;
       }
 
-      const interpreter = new Interpreter(input);
-      const result = interpreter.expr();
+      const lexer = new Lexer(input);
+      const parser = new Parser(lexer);
 
-      interpreter.eat(TokenType.EOF);
+      const result = parser.parse();
+      parser.eat(TokenType.EOF);
 
+      console.log('\nresult:\n');
       console.log(result);
       console.log('');
     } catch (error) {

@@ -1,5 +1,6 @@
-import { Lexer } from './lexer';
-import { Token, TokenType } from './token';
+import { Lexer } from '../lexer/lexer';
+import { Token, TokenType } from '../lexer/token';
+import type { MathTokenType } from '../lexer/token';
 
 export class Interpreter {
   text: string;
@@ -167,16 +168,7 @@ export class Interpreter {
     return result;
   }
 
-  do_math(
-    left: number,
-    right: number,
-    operationType:
-      | TokenType.Plus
-      | TokenType.Minus
-      | TokenType.Multiply
-      | TokenType.Divide
-      | TokenType.Pow
-  ): number {
+  do_math(left: number, right: number, operationType: MathTokenType): number {
     switch (operationType) {
       case TokenType.Plus:
         return left + right;

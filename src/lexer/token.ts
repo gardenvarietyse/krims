@@ -12,6 +12,13 @@ export enum TokenType {
   EOF = 'EOF',
 }
 
+export type MathTokenType =
+  | TokenType.Plus
+  | TokenType.Minus
+  | TokenType.Multiply
+  | TokenType.Divide
+  | TokenType.Pow;
+
 export class Token {
   type: TokenType;
   value?: string | number;
