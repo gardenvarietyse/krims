@@ -1,4 +1,4 @@
 - have Lexer generate all tokens up front
 - Parser consumes list of tokens
 - rewrite without classes?
-- support first atom being negative
+- ditch is_arithmetic_operator test
