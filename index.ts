@@ -2,7 +2,6 @@ const { createInterface } = require('readline');
 
 import { Interpreter } from './src/interpreter/interpreter';
 import { Lexer } from './src/lexer/lexer';
-import { TokenType } from './src/lexer/token';
 import { Parser } from './src/parser/parser';
 
 const rl = createInterface({
@@ -30,7 +29,6 @@ const main = async () => {
       const parser = new Parser(lexer);
 
       const ast = parser.parse();
-      parser.eat(TokenType.EOF);
 
       console.log('');
       console.log(ast);

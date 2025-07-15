@@ -1,0 +1,13 @@
+program : (expr separator)* formula EOF
+
+separator : (NEWLINE|SEMICOLON)
+
+expr : assignment | formula
+
+assignment : IDENTIFIER = formula
+
+formula  : term ((PLUS|MINUS) term)*;
+term     : unary ((MUL|DIV) unary)*;
+unary    : (PLUS|MINUS)? power;
+power    : atom (POW power)?;
+atom     : ?IDENTIFIER | NUMBER | LPAREN expr RPAREN;

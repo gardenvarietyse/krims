@@ -9,3 +9,8 @@ export const is_arithmetic_operator = (char: string) =>
 export const is_left_paren = (char: string) => char === '(';
 export const is_right_paren = (char: string) => char === ')';
 export const is_pow = (char: string) => char === '^';
+export const is_equals = (char: string) => char === '=';
+export const is_newline = (char: string) => char === '\n';
+export const is_identifier = (char: string) => /[a-zA-Z_]/.test(char);
+export const is_semicolon = (char: string) => char === ';';
+export const is_question_mark = (char: string) => char === '?';

@@ -1,14 +1,24 @@
 export enum TokenType {
-  SOF = 'SOF',
   Whitespace = 'Whitespace',
+  Newline = 'Newline',
+
+  Semicolon = 'Semicolon',
+  Retrieval = 'Retrieval',
+
+  Identifier = 'Identifier',
   Number = 'Number',
+
   Plus = 'Plus',
   Minus = 'Minus',
   Multiply = 'Multiply',
   Divide = 'Divide',
   Pow = 'Pow',
+  Equals = 'Equals',
+
   LeftParen = 'LeftParen',
   RightParen = 'RightParen',
+
+  SOF = 'SOF',
   EOF = 'EOF',
 }
 

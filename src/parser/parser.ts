@@ -1,6 +1,14 @@
 import { MathTokenType, Token, TokenType } from '../lexer/token';
 import { Lexer } from '../lexer/lexer';
-import { AST, BinaryOp, Number, UnaryOp } from './ast';
+import {
+  Assignment,
+  AST,
+  BinaryOp,
+  Number,
+  Program,
+  Read,
+  UnaryOp,
+} from './ast';
 
 export class Parser {
   lexer: Lexer;
@@ -38,9 +46,16 @@ export class Parser {
     return token_type as T;
   }
 
-  // atom : NUMBER | LPAREN expr RPAREN;
+  atom(): Read | Number | UnaryOp | BinaryOp {
+    if (this.current_token.type === TokenType.Retrieval) {
+      const identifier_token = this.current_token;
+      const identifier = identifier_token.value as string;
 
-  atom(): Number | UnaryOp | BinaryOp {
+      this.eat(TokenType.Retrieval);
+
+      return new Read(identifier, identifier_token);
+    }
+
     if (this.current_token.type === TokenType.Number) {
       const number_token = this.current_token;
       const value = number_token.value as number;
@@ -51,15 +66,13 @@ export class Parser {
 
     this.eat(TokenType.LeftParen);
 
-    const expr = this.expr();
+    const expr = this.formula();
     this.eat(TokenType.RightParen);
 
     return expr;
   }
 
-  // power : atom (POW power)?;
-
-  power(): Number | UnaryOp | BinaryOp {
+  power(): Read | Number | UnaryOp | BinaryOp {
     var left = this.atom();
 
     if (this.current_token.type === TokenType.Pow) {
@@ -74,9 +87,7 @@ export class Parser {
     return left;
   }
 
-  // unary : (PLUS|MINUS)? power;
-
-  unary(): Number | UnaryOp | BinaryOp {
+  unary(): Read | Number | UnaryOp | BinaryOp {
     const unary_token = this.current_token;
 
     if (this.current_token.type === TokenType.Plus) {
@@ -96,13 +107,11 @@ export class Parser {
     return this.power();
   }
 
-  // term   : unary ((MUL|DIV) unary)*;
-
   mathTokenType(...token_types: MathTokenType[]): MathTokenType {
     return this.eatType(...token_types);
   }
 
-  term(): Number | UnaryOp | BinaryOp {
+  term(): Read | Number | UnaryOp | BinaryOp {
     const OP_TYPES = [TokenType.Multiply, TokenType.Divide];
 
     var left = this.unary();
@@ -118,9 +127,7 @@ export class Parser {
     return left;
   }
 
-  // expr   : term ((PLUS|MINUS) term)*;
-
-  expr(): Number | UnaryOp | BinaryOp {
+  formula(): Read | Number | UnaryOp | BinaryOp {
     const OP_TYPES = [TokenType.Plus, TokenType.Minus];
 
     var left = this.term();
@@ -136,7 +143,52 @@ export class Parser {
     return left;
   }
 
+  assignment(): Assignment {
+    const identifier = this.current_token.value as string;
+    const identifier_token = this.current_token;
+
+    this.eat(TokenType.Identifier);
+    this.eat(TokenType.Equals);
+
+    const value = this.formula();
+
+    return new Assignment(identifier, value, identifier_token);
+  }
+
+  expr(): AST {
+    if (this.current_token.type === TokenType.Identifier) {
+      return this.assignment();
+    }
+
+    return this.formula();
+  }
+
+  separator(): void {
+    this.eat(TokenType.Semicolon, TokenType.Newline);
+  }
+
+  program(): AST {
+    const SEPARATOR = [TokenType.Semicolon, TokenType.Newline];
+
+    const statements: AST[] = [];
+    while (true) {
+      statements.push(this.expr());
+
+      if (SEPARATOR.includes(this.current_token.type)) {
+        this.eat(...SEPARATOR);
+      }
+
+      if (this.current_token.type === TokenType.EOF) {
+        break;
+      }
+    }
+
+    this.eat(TokenType.EOF);
+
+    return new Program(statements);
+  }
+
   parse(): AST {
-    return this.expr();
+    return this.program();
   }
 }

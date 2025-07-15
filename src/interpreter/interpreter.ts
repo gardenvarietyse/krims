@@ -1,14 +1,35 @@
 import { TokenType } from '../lexer/token';
-import { AST, BinaryOp, Number, UnaryOp } from '../parser/ast';
+import {
+  Assignment,
+  AST,
+  BinaryOp,
+  Number,
+  Program,
+  Read,
+  UnaryOp,
+} from '../parser/ast';
 
 export class Interpreter {
   ast: AST;
-
   current_node: AST;
+
+  memory: Record<string, number> = {};
 
   constructor(ast: AST) {
     this.ast = ast;
     this.current_node = ast;
+  }
+
+  write(identifier: string, value: number): void {
+    this.memory[identifier] = value;
+  }
+
+  read(identifier: string): number {
+    if (identifier in this.memory) {
+      return this.memory[identifier];
+    }
+
+    this.error(`Identifier ${identifier} not found in memory.`);
   }
 
   error(msg = 'syntax error'): never {
@@ -26,6 +47,18 @@ export class Interpreter {
       return this.visit_binary_op(node);
     }
 
+    if (node instanceof Program) {
+      return this.visit_program(node);
+    }
+
+    if (node instanceof Assignment) {
+      return this.visit_assignment(node);
+    }
+
+    if (node instanceof Read) {
+      return this.visit_read(node);
+    }
+
     if (node instanceof Number) {
       return this.visit_number(node);
     }
@@ -33,13 +66,38 @@ export class Interpreter {
     this.error(`Unknown node type: ${node.constructor.name}`);
   }
 
-  interpret(): number {
+  interpret(): number | undefined {
     return this.visit(this.ast);
   }
 
   /*
     visitors
   */
+
+  visit_program(program: Program): number {
+    let result: number = 0;
+
+    for (const child of program.body) {
+      result = this.visit(child);
+    }
+
+    return result;
+  }
+
+  visit_assignment(node: Assignment): number {
+    const identifier = node.identifier;
+    const value = this.visit(node.value);
+
+    this.write(identifier, value);
+
+    return value;
+  }
+
+  visit_read(node: Read): number {
+    const identifier = node.identifier;
+
+    return this.read(identifier);
+  }
 
   visit_number(node: Number): number {
     return node.value;

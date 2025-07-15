@@ -1,10 +1,15 @@
 import {
   is_arithmetic_operator,
   is_digit,
+  is_equals,
+  is_identifier,
   is_left_paren,
+  is_newline,
   is_number,
   is_pow,
+  is_question_mark,
   is_right_paren,
+  is_semicolon,
   is_whitespace,
 } from './test';
 import { Token, TokenType } from './token';
@@ -36,6 +41,14 @@ export class Lexer {
 
     const current_char = text[this._position];
 
+    if (is_newline(current_char)) {
+      const token = new Token(TokenType.Newline, current_char);
+
+      this._position += 1;
+
+      return token;
+    }
+
     if (is_whitespace(current_char)) {
       const token = new Token(TokenType.Whitespace, current_char);
 
@@ -44,7 +57,14 @@ export class Lexer {
       return token;
     }
 
-    // todo: break out into number() function
+    if (is_identifier(current_char)) {
+      const token = new Token(TokenType.Identifier, current_char);
+
+      this._position += 1;
+
+      return token;
+    }
+
     if (is_digit(current_char)) {
       const digits = [current_char];
 
@@ -96,6 +116,30 @@ export class Lexer {
     if (is_pow(current_char)) {
       this._position += 1;
       return new Token(TokenType.Pow);
+    }
+
+    if (is_equals(current_char)) {
+      this._position += 1;
+      return new Token(TokenType.Equals);
+    }
+
+    if (is_semicolon(current_char)) {
+      this._position += 1;
+      return new Token(TokenType.Semicolon);
+    }
+
+    if (is_question_mark(current_char)) {
+      this._position += 1;
+
+      if (is_identifier(text[this._position])) {
+        const identifier = text[this._position];
+        this._position += 1;
+        return new Token(TokenType.Retrieval, identifier);
+      }
+
+      this.error(
+        `expected identifier after question mark, got '${text[this._position]}'`
+      );
     }
 
     this.error(`unexpected character '${current_char}'`);

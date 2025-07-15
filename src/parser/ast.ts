@@ -2,6 +2,36 @@ import type { MathTokenType, Token } from '../lexer/token';
 
 export interface AST {}
 
+export class Program implements AST {
+  body: AST[];
+
+  constructor(body: AST[]) {
+    this.body = body;
+  }
+}
+
+export class Assignment implements AST {
+  identifier: string;
+  value: AST;
+  token: Token;
+
+  constructor(identifier: string, value: AST, token: Token) {
+    this.identifier = identifier;
+    this.value = value;
+    this.token = token;
+  }
+}
+
+export class Read implements AST {
+  identifier: string;
+  token: Token;
+
+  constructor(identifier: string, token: Token) {
+    this.identifier = identifier;
+    this.token = token;
+  }
+}
+
 export class UnaryOp implements AST {
   operator: MathTokenType;
   operand: AST;
