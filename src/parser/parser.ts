@@ -92,16 +92,16 @@ export class Parser {
 
     if (this.current_token.type === TokenType.Plus) {
       this.eat(TokenType.Plus);
-      const power = this.power();
+      const op = this.power();
 
-      return new UnaryOp(TokenType.Plus, power, unary_token);
+      return new UnaryOp(TokenType.Plus, op, unary_token);
     }
 
     if (this.current_token.type === TokenType.Minus) {
       this.eat(TokenType.Minus);
-      const power = this.power();
+      const op = this.power();
 
-      return new UnaryOp(TokenType.Minus, power, unary_token);
+      return new UnaryOp(TokenType.Minus, op, unary_token);
     }
 
     return this.power();
