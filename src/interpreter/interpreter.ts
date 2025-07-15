@@ -1,5 +1,5 @@
 import { TokenType } from '../lexer/token';
-import { AST, BinaryOp, Number } from '../parser/ast';
+import { AST, BinaryOp, Number, UnaryOp } from '../parser/ast';
 
 export class Interpreter {
   ast: AST;
@@ -17,6 +17,10 @@ export class Interpreter {
 
   visit(node: AST): number {
     this.current_node = node;
+
+    if (node instanceof UnaryOp) {
+      return this.visit_unary_op(node);
+    }
 
     if (node instanceof BinaryOp) {
       return this.visit_binary_op(node);
@@ -39,6 +43,19 @@ export class Interpreter {
 
   visit_number(node: Number): number {
     return node.value;
+  }
+
+  visit_unary_op(node: UnaryOp): number {
+    const operand_value = this.visit(node.operand);
+
+    switch (node.operator) {
+      case TokenType.Plus:
+        return operand_value;
+      case TokenType.Minus:
+        return -operand_value;
+      default:
+        this.error(`Unknown unary operator: ${node.operator}`);
+    }
   }
 
   visit_binary_op(node: BinaryOp): number {

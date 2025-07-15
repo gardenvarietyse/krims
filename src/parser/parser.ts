@@ -1,6 +1,6 @@
 import { MathTokenType, Token, TokenType } from '../lexer/token';
 import { Lexer } from '../lexer/lexer';
-import { AST, BinaryOp, Number } from './ast';
+import { AST, BinaryOp, Number, UnaryOp } from './ast';
 
 export class Parser {
   lexer: Lexer;
@@ -40,7 +40,7 @@ export class Parser {
 
   // atom : NUMBER | LPAREN expr RPAREN;
 
-  atom(): Number | BinaryOp {
+  atom(): Number | UnaryOp | BinaryOp {
     if (this.current_token.type === TokenType.Number) {
       const number_token = this.current_token;
       const value = number_token.value as number;
@@ -57,38 +57,60 @@ export class Parser {
     return expr;
   }
 
-  // factor : atom (POW factor)*;
+  // power : atom (POW power)?;
 
-  factor(): Number | BinaryOp {
+  power(): Number | UnaryOp | BinaryOp {
     var left = this.atom();
 
-    if (this.current_token.type !== TokenType.Pow) {
-      return left;
+    if (this.current_token.type === TokenType.Pow) {
+      const pow_token = this.current_token;
+
+      this.eat(TokenType.Pow);
+      const right = this.power();
+
+      return new BinaryOp(left, right, TokenType.Pow, pow_token);
     }
 
-    const pow_token = this.current_token;
-
-    this.eat(TokenType.Pow);
-    const right = this.factor();
-
-    return new BinaryOp(left, right, TokenType.Pow, pow_token);
+    return left;
   }
 
-  // term   : factor ((MUL|DIV) factor)*;
+  // unary : (PLUS|MINUS)? power;
+
+  unary(): Number | UnaryOp | BinaryOp {
+    const unary_token = this.current_token;
+
+    if (this.current_token.type === TokenType.Plus) {
+      this.eat(TokenType.Plus);
+      const power = this.power();
+
+      return new UnaryOp(TokenType.Plus, power, unary_token);
+    }
+
+    if (this.current_token.type === TokenType.Minus) {
+      this.eat(TokenType.Minus);
+      const power = this.power();
+
+      return new UnaryOp(TokenType.Minus, power, unary_token);
+    }
+
+    return this.power();
+  }
+
+  // term   : unary ((MUL|DIV) unary)*;
 
   mathTokenType(...token_types: MathTokenType[]): MathTokenType {
     return this.eatType(...token_types);
   }
 
-  term(): Number | BinaryOp {
+  term(): Number | UnaryOp | BinaryOp {
     const OP_TYPES = [TokenType.Multiply, TokenType.Divide];
 
-    var left = this.factor();
+    var left = this.unary();
 
     while (OP_TYPES.includes(this.current_token.type)) {
       const op_token = this.current_token;
       const op = this.mathTokenType(...(OP_TYPES as MathTokenType[]));
-      const right = this.factor();
+      const right = this.unary();
 
       left = new BinaryOp(left, right, op, op_token);
     }
@@ -98,7 +120,7 @@ export class Parser {
 
   // expr   : term ((PLUS|MINUS) term)*;
 
-  expr(): Number | BinaryOp {
+  expr(): Number | UnaryOp | BinaryOp {
     const OP_TYPES = [TokenType.Plus, TokenType.Minus];
 
     var left = this.term();
