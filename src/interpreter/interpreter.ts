@@ -1,191 +1,60 @@
-import { Lexer } from '../lexer/lexer';
-import { Token, TokenType } from '../lexer/token';
-import type { MathTokenType } from '../lexer/token';
+import { TokenType } from '../lexer/token';
+import { AST, BinaryOp, Number } from '../parser/ast';
 
 export class Interpreter {
-  text: string;
-  current_token: Token = new Token(TokenType.SOF);
-  lexer: Lexer;
+  ast: AST;
 
-  indent: number = 0;
+  current_node: AST;
 
-  log(...args: any[]): void {
-    console.log(' '.repeat(this.indent), ...args);
-  }
-
-  tab(): void {
-    this.indent += 2;
-  }
-
-  untab(): void {
-    this.indent = Math.max(0, this.indent - 2);
-  }
-
-  constructor(text: string) {
-    this.text = text;
-    this.lexer = new Lexer(text);
-
-    this.eat(TokenType.SOF);
+  constructor(ast: AST) {
+    this.ast = ast;
+    this.current_node = ast;
   }
 
   error(msg = 'syntax error'): never {
-    throw new Error(`${msg} @ ${this.lexer.position()}`);
+    throw new Error(`${msg} @ ${this.current_node}`);
   }
 
-  eat(...token_types: TokenType[]): void {
-    // this.log(
-    //   'eat[',
-    //   token_types.join(', '),
-    //   '] ',
-    //   this.current_token.value ?? ''
-    // );
-    const current_type = this.current_token.type;
+  visit(node: AST): number {
+    this.current_node = node;
 
-    if (token_types.includes(current_type)) {
-      this.current_token = this.lexer.get_next_token();
-
-      while (this.current_token.type === TokenType.Whitespace) {
-        this.current_token = this.lexer.get_next_token();
-      }
-    } else {
-      this.error(
-        `unexpected token; ${this.current_token.type} ≠ ${token_types.join(
-          ', '
-        )}`
-      );
-    }
-  }
-
-  // expr   : term ((PLUS|MINUS) term)*;
-  // term   : factor ((MUL|DIV) factor)*;
-  // factor : atom (POW factor)*;
-  // atom : NUMBER | LPAREN expr RPAREN;
-
-  atom(): number {
-    if (this.current_token.type === TokenType.LeftParen) {
-      this.log('atom: (');
-      this.tab();
-
-      this.eat(TokenType.LeftParen);
-
-      const result = this.expr();
-
-      this.eat(TokenType.RightParen);
-
-      this.untab();
-      this.log('atom: )');
-
-      return result;
+    if (node instanceof BinaryOp) {
+      return this.visit_binary_op(node);
     }
 
-    const value = this.current_token.value;
-    this.eat(TokenType.Number);
-
-    this.log('atom: ', value);
-
-    return value as number;
-  }
-
-  factor(): number {
-    this.tab();
-
-    var result = this.atom();
-
-    while (this.current_token.type === TokenType.Pow) {
-      this.eat(TokenType.Pow);
-
-      const right = this.factor();
-
-      const previous_result = result;
-      result = this.do_math(result, right, TokenType.Pow);
-      this.log(`  ${previous_result}^${right} = ${result}`);
+    if (node instanceof Number) {
+      return this.visit_number(node);
     }
 
-    this.log('factor: ', result);
-
-    this.untab();
-
-    return result;
+    this.error(`Unknown node type: ${node.constructor.name}`);
   }
 
-  multiplyDivide(): TokenType.Multiply | TokenType.Divide {
-    const token_type = this.current_token.type;
-    this.eat(TokenType.Multiply, TokenType.Divide);
-
-    this.log('multiplyDivide');
-    this.log('-> ', token_type, '\n');
-
-    return token_type as TokenType.Multiply | TokenType.Divide;
+  interpret(): number {
+    return this.visit(this.ast);
   }
 
-  term(): number {
-    this.log('term');
-    this.tab();
+  /*
+    visitors
+  */
 
-    let result = this.factor();
-
-    while (
-      [TokenType.Multiply, TokenType.Divide].includes(this.current_token.type)
-    ) {
-      const operation = this.multiplyDivide();
-
-      result = this.do_math(result, this.factor(), operation);
-    }
-
-    this.untab();
-    this.log('->', result, '\n');
-
-    return result;
+  visit_number(node: Number): number {
+    return node.value;
   }
 
-  plusMinus(): TokenType.Plus | TokenType.Minus {
-    const token_type = this.current_token.type;
-    this.eat(TokenType.Plus, TokenType.Minus);
-
-    this.log('plusMinus');
-    this.log('-> ', token_type, '\n');
-
-    return token_type as TokenType.Plus | TokenType.Minus;
-  }
-
-  expr(): number {
-    this.log('expr');
-    this.tab();
-
-    let result = this.term();
-
-    while (
-      [TokenType.Plus, TokenType.Minus].includes(this.current_token.type)
-    ) {
-      const operation = this.plusMinus();
-
-      result = this.do_math(result, this.term(), operation);
-    }
-
-    this.untab();
-    this.log('->', result, '\n');
-
-    return result;
-  }
-
-  do_math(left: number, right: number, operationType: MathTokenType): number {
-    switch (operationType) {
+  visit_binary_op(node: BinaryOp): number {
+    switch (node.operator) {
       case TokenType.Plus:
-        return left + right;
+        return this.visit(node.left) + this.visit(node.right);
       case TokenType.Minus:
-        return left - right;
+        return this.visit(node.left) - this.visit(node.right);
       case TokenType.Multiply:
-        return left * right;
+        return this.visit(node.left) * this.visit(node.right);
       case TokenType.Divide:
-        if (right === 0) {
-          this.error('division by zero');
-        }
-
-        return left / right;
+        return this.visit(node.left) / this.visit(node.right);
       case TokenType.Pow:
-        return Math.pow(left, right);
+        return Math.pow(this.visit(node.left), this.visit(node.right));
       default:
-        this.error(`unknown operator ${operationType}`);
+        this.error(`Unknown operator: ${node.operator}`);
     }
   }
 }

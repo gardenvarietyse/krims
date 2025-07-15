@@ -24,8 +24,6 @@ export class Parser {
       while (this.current_token.type === TokenType.Whitespace) {
         this.current_token = this.lexer.get_next_token();
       }
-
-      console.log('eat:', token_types.join(', '));
     } else {
       this.error(
         `expected ${token_types.join(', ')}, got ${this.current_token.type}`
@@ -48,7 +46,6 @@ export class Parser {
       const value = number_token.value as number;
       this.eat(TokenType.Number);
 
-      console.log('  -> ate number, token is now ', this.current_token);
       return new Number(value, number_token);
     }
 
@@ -60,26 +57,24 @@ export class Parser {
     return expr;
   }
 
-  // factor : atom (POW factor)*;
+  // factor : atom (POW expr)*;
 
   factor(): Number | BinaryOp {
-    console.log('factor');
     var left = this.atom();
 
     if (this.current_token.type !== TokenType.Pow) {
-      console.log('  factor: left side only');
       return left;
     }
 
     const pow_token = this.current_token;
 
     this.eat(TokenType.Pow);
-    const right = this.factor();
+    const right = this.expr();
 
     return new BinaryOp(left, right, TokenType.Pow, pow_token);
   }
 
-  // term   : factor ((MUL|DIV) factor)*;
+  // term   : factor ((MUL|DIV) expr)*;
 
   mathTokenType(...token_types: MathTokenType[]): MathTokenType {
     return this.eatType(...token_types);
@@ -91,35 +86,30 @@ export class Parser {
     var left = this.factor();
 
     if (!OP_TYPES.includes(this.current_token.type)) {
-      console.log('term() returns left, token is now ', this.current_token);
       return left;
     }
 
     const op_token = this.current_token;
     const op = this.mathTokenType(...(OP_TYPES as MathTokenType[]));
-    const right = this.factor();
+    const right = this.expr();
 
     return new BinaryOp(left, right, op, op_token);
   }
 
-  // expr   : term ((PLUS|MINUS) term)*;
+  // expr   : term ((PLUS|MINUS) expr)*;
 
   expr(): Number | BinaryOp {
     const OP_TYPES = [TokenType.Plus, TokenType.Minus];
 
-    console.log('expr');
-
     var left = this.term();
-    console.log('expr() got left expression, token now:', this.current_token);
 
     if (!OP_TYPES.includes(this.current_token.type)) {
-      console.log('  expr: left not followed by + or -; returning left');
       return left;
     }
 
     const op_token = this.current_token;
     const op = this.mathTokenType(...(OP_TYPES as MathTokenType[]));
-    const right = this.term();
+    const right = this.expr();
 
     return new BinaryOp(left, right, op, op_token);
   }

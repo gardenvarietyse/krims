@@ -29,12 +29,12 @@ const main = async () => {
       const lexer = new Lexer(input);
       const parser = new Parser(lexer);
 
-      const result = parser.parse();
+      const ast = parser.parse();
       parser.eat(TokenType.EOF);
 
-      console.log('\nresult:\n');
+      const interpreter = new Interpreter(ast);
+      const result = interpreter.interpret();
       console.log(result);
-      console.log('');
     } catch (error) {
       console.error(error);
     }
