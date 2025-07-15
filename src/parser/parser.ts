@@ -185,8 +185,6 @@ export class Parser {
       }
     }
 
-    this.eat(TokenType.EOF);
-
     return new Program(statements);
   }
 
