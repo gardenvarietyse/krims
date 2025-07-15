@@ -7,7 +7,6 @@ import {
   is_newline,
   is_number,
   is_pow,
-  is_question_mark,
   is_right_paren,
   is_semicolon,
   is_whitespace,
@@ -55,6 +54,17 @@ export class Lexer {
       this._position += 1;
 
       return token;
+    }
+
+    if (
+      current_char === 'l' &&
+      text[this._position + 1] === 'e' &&
+      text[this._position + 2] === 't' &&
+      is_whitespace(text[this._position + 3])
+    ) {
+      this._position += 3;
+
+      return new Token(TokenType.KeywordLet);
     }
 
     if (is_identifier(current_char)) {
@@ -126,20 +136,6 @@ export class Lexer {
     if (is_semicolon(current_char)) {
       this._position += 1;
       return new Token(TokenType.Semicolon);
-    }
-
-    if (is_question_mark(current_char)) {
-      this._position += 1;
-
-      if (is_identifier(text[this._position])) {
-        const identifier = text[this._position];
-        this._position += 1;
-        return new Token(TokenType.Retrieval, identifier);
-      }
-
-      this.error(
-        `expected identifier after question mark, got '${text[this._position]}'`
-      );
     }
 
     this.error(`unexpected character '${current_char}'`);

@@ -47,11 +47,11 @@ export class Parser {
   }
 
   atom(): Read | Number | UnaryOp | BinaryOp {
-    if (this.current_token.type === TokenType.Retrieval) {
+    if (this.current_token.type === TokenType.Identifier) {
       const identifier_token = this.current_token;
       const identifier = identifier_token.value as string;
 
-      this.eat(TokenType.Retrieval);
+      this.eat(TokenType.Identifier);
 
       return new Read(identifier, identifier_token);
     }
@@ -144,6 +144,8 @@ export class Parser {
   }
 
   assignment(): Assignment {
+    this.eat(TokenType.KeywordLet);
+
     const identifier = this.current_token.value as string;
     const identifier_token = this.current_token;
 
@@ -156,7 +158,7 @@ export class Parser {
   }
 
   expr(): AST {
-    if (this.current_token.type === TokenType.Identifier) {
+    if (this.current_token.type === TokenType.KeywordLet) {
       return this.assignment();
     }
 
@@ -168,17 +170,17 @@ export class Parser {
   }
 
   program(): AST {
-    const SEPARATOR = [TokenType.Semicolon, TokenType.Newline];
+    const SEPARATOR = [TokenType.Semicolon, TokenType.Newline, TokenType.EOF];
 
     const statements: AST[] = [];
+
     while (true) {
       statements.push(this.expr());
 
-      if (SEPARATOR.includes(this.current_token.type)) {
-        this.eat(...SEPARATOR);
-      }
+      const maybe_eof = this.current_token.type;
+      this.eat(...SEPARATOR);
 
-      if (this.current_token.type === TokenType.EOF) {
+      if (maybe_eof === TokenType.EOF) {
         break;
       }
     }

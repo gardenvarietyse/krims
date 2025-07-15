@@ -3,8 +3,8 @@ export enum TokenType {
   Newline = 'Newline',
 
   Semicolon = 'Semicolon',
-  Retrieval = 'Retrieval',
 
+  KeywordLet = 'KeywordLet',
   Identifier = 'Identifier',
   Number = 'Number',
 

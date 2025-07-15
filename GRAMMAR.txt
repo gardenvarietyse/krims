@@ -1,4 +1,4 @@
-program : (expr separator)* formula EOF
+program : (expr separator)+ formula EOF
 
 separator : (NEWLINE|SEMICOLON)
 
@@ -10,4 +10,4 @@ formula  : term ((PLUS|MINUS) term)*;
 term     : unary ((MUL|DIV) unary)*;
 unary    : (PLUS|MINUS)? power;
 power    : atom (POW power)?;
-atom     : ?IDENTIFIER | NUMBER | LPAREN expr RPAREN;
+atom     : IDENTIFIER | NUMBER | LPAREN expr RPAREN;
