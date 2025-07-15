@@ -32,6 +32,10 @@ const main = async () => {
       const ast = parser.parse();
       parser.eat(TokenType.EOF);
 
+      console.log('');
+      console.log(ast);
+      console.log('');
+
       const interpreter = new Interpreter(ast);
       const result = interpreter.interpret();
       console.log(result);

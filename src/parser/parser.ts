@@ -74,7 +74,7 @@ export class Parser {
     return new BinaryOp(left, right, TokenType.Pow, pow_token);
   }
 
-  // term   : factor ((MUL|DIV) expr)*;
+  // term   : factor ((MUL|DIV) factor)*;
 
   mathTokenType(...token_types: MathTokenType[]): MathTokenType {
     return this.eatType(...token_types);
@@ -85,33 +85,33 @@ export class Parser {
 
     var left = this.factor();
 
-    if (!OP_TYPES.includes(this.current_token.type)) {
-      return left;
+    while (OP_TYPES.includes(this.current_token.type)) {
+      const op_token = this.current_token;
+      const op = this.mathTokenType(...(OP_TYPES as MathTokenType[]));
+      const right = this.factor();
+
+      left = new BinaryOp(left, right, op, op_token);
     }
 
-    const op_token = this.current_token;
-    const op = this.mathTokenType(...(OP_TYPES as MathTokenType[]));
-    const right = this.expr();
-
-    return new BinaryOp(left, right, op, op_token);
+    return left;
   }
 
-  // expr   : term ((PLUS|MINUS) expr)*;
+  // expr   : term ((PLUS|MINUS) term)*;
 
   expr(): Number | BinaryOp {
     const OP_TYPES = [TokenType.Plus, TokenType.Minus];
 
     var left = this.term();
 
-    if (!OP_TYPES.includes(this.current_token.type)) {
-      return left;
+    while (OP_TYPES.includes(this.current_token.type)) {
+      const op_token = this.current_token;
+      const op = this.mathTokenType(...(OP_TYPES as MathTokenType[]));
+      const right = this.term();
+
+      left = new BinaryOp(left, right, op, op_token);
     }
 
-    const op_token = this.current_token;
-    const op = this.mathTokenType(...(OP_TYPES as MathTokenType[]));
-    const right = this.expr();
-
-    return new BinaryOp(left, right, op, op_token);
+    return left;
   }
 
   parse(): AST {
