@@ -88,20 +88,15 @@ export class Parser {
   }
 
   unary(): Read | Number | UnaryOp | BinaryOp {
+    const UNARY_OP = [TokenType.Plus, TokenType.Minus];
+
     const unary_token = this.current_token;
 
-    if (this.current_token.type === TokenType.Plus) {
-      this.eat(TokenType.Plus);
-      const op = this.power();
+    if (UNARY_OP.includes(this.current_token.type)) {
+      const token_type = this.eatType(...UNARY_OP) as MathTokenType;
+      const operand = this.power();
 
-      return new UnaryOp(TokenType.Plus, op, unary_token);
-    }
-
-    if (this.current_token.type === TokenType.Minus) {
-      this.eat(TokenType.Minus);
-      const op = this.power();
-
-      return new UnaryOp(TokenType.Minus, op, unary_token);
+      return new UnaryOp(token_type, operand, unary_token);
     }
 
     return this.power();
