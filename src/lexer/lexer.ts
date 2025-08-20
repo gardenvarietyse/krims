@@ -15,7 +15,10 @@ import { Token, TokenType } from './token';
 
 export class Lexer {
   text: string;
+
+  _line: number = 1;
   _position: number;
+
   current_token?: Token;
 
   constructor(text: string) {
@@ -29,6 +32,18 @@ export class Lexer {
 
   error(msg = 'syntax error'): never {
     throw new Error(`${msg} @ ${this._position}`);
+  }
+
+  peek(ignore_whitespace = true): Token {
+    const current_position = this._position;
+    let token = this.get_next_token();
+
+    while (ignore_whitespace && token.type === TokenType.Whitespace) {
+      token = this.get_next_token();
+    }
+
+    this._position = current_position;
+    return token;
   }
 
   get_next_token(): Token {

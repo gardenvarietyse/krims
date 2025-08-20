@@ -2,10 +2,10 @@ program : expr (separator expr)+ EOF
 
 separator : (NEWLINE|SEMICOLON)
 
-expr : assignment | formula
+expr : initialization | assignment | formula
 
-assignment : "let" initialization
-initialization : IDENTIFIER = formula
+initialization : let assignment
+assignment : IDENTIFIER = formula
 
 formula  : term ((PLUS|MINUS) term)*;
 term     : unary ((MUL|DIV) unary)*;

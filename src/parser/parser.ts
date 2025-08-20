@@ -4,6 +4,7 @@ import {
   Assignment,
   AST,
   BinaryOp,
+  Initialization,
   Number,
   Program,
   Read,
@@ -139,8 +140,6 @@ export class Parser {
   }
 
   assignment(): Assignment {
-    this.eat(TokenType.KeywordLet);
-
     const identifier = this.current_token.value as string;
     const identifier_token = this.current_token;
 
@@ -152,9 +151,27 @@ export class Parser {
     return new Assignment(identifier, value, identifier_token);
   }
 
+  initialization(): Initialization {
+    this.eat(TokenType.KeywordLet);
+
+    const identifier = this.current_token.value as string;
+    const identifier_token = this.current_token;
+
+    this.eat(TokenType.Identifier);
+    this.eat(TokenType.Equals);
+
+    const value = this.formula();
+
+    return new Initialization(identifier, value, identifier_token);
+  }
+
   expr(): AST {
     if (this.current_token.type === TokenType.KeywordLet) {
-      return this.assignment();
+      return this.initialization();
+    } else if (this.current_token.type === TokenType.Identifier) {
+      if (this.lexer.peek().type === TokenType.Equals) {
+        return this.assignment();
+      }
     }
 
     return this.formula();

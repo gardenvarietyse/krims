@@ -2,4 +2,5 @@
 - Parser consumes list of tokens
 - rewrite without classes?
 - ditch is_arithmetic_operator test
-- lexer peek
+- support const
+-

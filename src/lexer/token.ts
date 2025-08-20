@@ -37,8 +37,4 @@ export class Token {
     this.type = type;
     this.value = value;
   }
-
-  toString(): string {
-    return `(${this.type}, ${this.value})`;
-  }
 }

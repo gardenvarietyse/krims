@@ -10,6 +10,18 @@ export class Program implements AST {
   }
 }
 
+export class Initialization implements AST {
+  identifier: string;
+  value: AST;
+  token: Token;
+
+  constructor(identifier: string, value: AST, token: Token) {
+    this.identifier = identifier;
+    this.value = value;
+    this.token = token;
+  }
+}
+
 export class Assignment implements AST {
   identifier: string;
   value: AST;

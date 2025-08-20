@@ -3,6 +3,7 @@ import {
   Assignment,
   AST,
   BinaryOp,
+  Initialization,
   Number,
   Program,
   Read,
@@ -10,30 +11,28 @@ import {
 } from '../parser/ast';
 
 export class Interpreter {
-  ast: AST;
-  current_node: AST;
+  current_node?: AST;
 
   memory: Record<string, number> = {};
-
-  constructor(ast: AST) {
-    this.ast = ast;
-    this.current_node = ast;
-  }
 
   write(identifier: string, value: number): void {
     this.memory[identifier] = value;
   }
 
   read(identifier: string): number {
-    if (identifier in this.memory) {
+    if (this.identifier_exists(identifier)) {
       return this.memory[identifier];
     }
 
-    this.error(`Identifier ${identifier} not found in memory.`);
+    this.error(`Undeclared identifier ${identifier}`);
   }
 
-  error(msg = 'syntax error'): never {
-    throw new Error(`${msg} @ ${this.current_node}`);
+  identifier_exists(identifier: string): boolean {
+    return identifier in this.memory;
+  }
+
+  error(msg = 'runtime error'): never {
+    throw new Error(msg);
   }
 
   visit(node: AST): number {
@@ -51,6 +50,10 @@ export class Interpreter {
       return this.visit_program(node);
     }
 
+    if (node instanceof Initialization) {
+      return this.visit_initialization(node);
+    }
+
     if (node instanceof Assignment) {
       return this.visit_assignment(node);
     }
@@ -66,8 +69,8 @@ export class Interpreter {
     this.error(`Unknown node type: ${node.constructor.name}`);
   }
 
-  interpret(): number | undefined {
-    return this.visit(this.ast);
+  interpret(ast: AST): number | undefined {
+    return this.visit(ast);
   }
 
   /*
@@ -84,7 +87,24 @@ export class Interpreter {
     return result;
   }
 
+  visit_initialization(node: Initialization): number {
+    if (this.identifier_exists(node.identifier)) {
+      this.error(`Identifier ${node.identifier} already exists`);
+    }
+
+    const identifier = node.identifier;
+    const value = this.visit(node.value);
+
+    this.write(identifier, value);
+
+    return value;
+  }
+
   visit_assignment(node: Assignment): number {
+    if (!this.identifier_exists(node.identifier)) {
+      this.error(`Undeclared identifier ${node.identifier}`);
+    }
+
     const identifier = node.identifier;
     const value = this.visit(node.value);
 

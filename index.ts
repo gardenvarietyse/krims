@@ -17,6 +17,8 @@ const get_input = (prompt: string) =>
   });
 
 const main = async () => {
+  const interpreter = new Interpreter();
+
   while (true) {
     try {
       const input = await get_input('> ');
@@ -30,12 +32,7 @@ const main = async () => {
 
       const ast = parser.parse();
 
-      console.log('');
-      console.log(ast);
-      console.log('');
-
-      const interpreter = new Interpreter(ast);
-      const result = interpreter.interpret();
+      const result = interpreter.interpret(ast);
       console.log(result);
     } catch (error) {
       console.error(error);
