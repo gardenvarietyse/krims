@@ -4,7 +4,8 @@ separator : (NEWLINE|SEMICOLON)
 
 expr : assignment | formula
 
-assignment : IDENTIFIER = formula
+assignment : "let" initialization
+initialization : IDENTIFIER = formula
 
 formula  : term ((PLUS|MINUS) term)*;
 term     : unary ((MUL|DIV) unary)*;

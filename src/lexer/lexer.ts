@@ -68,9 +68,20 @@ export class Lexer {
     }
 
     if (is_identifier(current_char)) {
-      const token = new Token(TokenType.Identifier, current_char);
+      const identifier_chars = [current_char];
+
+      for (let i = this._position + 1; i < text.length; i++) {
+        if (is_identifier(text[i])) {
+          identifier_chars.push(text[i]);
+          this._position += 1;
+        } else {
+          break;
+        }
+      }
 
       this._position += 1;
+
+      const token = new Token(TokenType.Identifier, identifier_chars.join(''));
 
       return token;
     }
