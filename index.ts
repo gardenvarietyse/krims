@@ -1,4 +1,4 @@
-const { createInterface } = require('readline');
+import { createInterface } from 'readline';
 
 import { Interpreter } from './src/interpreter/interpreter';
 import { Lexer } from './src/lexer/lexer';
