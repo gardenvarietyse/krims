@@ -1,15 +1,16 @@
-
-program : expr (separator expr)+ EOF
+program : expr (separator expr)+
 
 separator : (NEWLINE|SEMICOLON)
 
-expr : initialization | assignment | formula
+expr : initialization | assignment | formula | function_def | invocation
 
 initialization : let assignment
 assignment : IDENTIFIER = formula
+function_def : LPAREN RPAREN => { program }
+invocation : IDENTIFIER LPAREN RPAREN
 
 formula  : term ((PLUS|MINUS) term)*;
 term     : unary ((MUL|DIV) unary)*;
 unary    : (PLUS|MINUS)? power;
 power    : atom (POW power)?;
-atom     : IDENTIFIER | NUMBER | LPAREN expr RPAREN;
+atom     : invocation | IDENTIFIER | NUMBER | LPAREN expr RPAREN;

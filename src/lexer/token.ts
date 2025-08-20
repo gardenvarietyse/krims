@@ -18,6 +18,8 @@ export enum TokenType {
   LeftParen = 'LeftParen',
   RightParen = 'RightParen',
 
+  FatArrow = 'FatArrow',
+
   SOF = 'SOF',
   EOF = 'EOF',
 }

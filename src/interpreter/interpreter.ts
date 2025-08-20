@@ -9,27 +9,11 @@ import {
   Read,
   UnaryOp,
 } from '../parser/ast';
+import { InterpreterMemory } from './memory';
 
 export class Interpreter {
+  memory: InterpreterMemory = new InterpreterMemory();
   current_node?: AST;
-
-  memory: Record<string, number> = {};
-
-  write(identifier: string, value: number): void {
-    this.memory[identifier] = value;
-  }
-
-  read(identifier: string): number {
-    if (this.identifier_exists(identifier)) {
-      return this.memory[identifier];
-    }
-
-    this.error(`Undeclared identifier ${identifier}`);
-  }
-
-  identifier_exists(identifier: string): boolean {
-    return identifier in this.memory;
-  }
 
   error(msg = 'runtime error'): never {
     throw new Error(msg);
@@ -88,27 +72,27 @@ export class Interpreter {
   }
 
   visit_initialization(node: Initialization): number {
-    if (this.identifier_exists(node.identifier)) {
-      this.error(`Identifier ${node.identifier} already exists`);
-    }
-
     const identifier = node.identifier;
     const value = this.visit(node.value);
 
-    this.write(identifier, value);
+    try {
+      this.memory.insert(identifier, value);
+    } catch (e) {
+      this.error(`${e}`);
+    }
 
     return value;
   }
 
   visit_assignment(node: Assignment): number {
-    if (!this.identifier_exists(node.identifier)) {
-      this.error(`Undeclared identifier ${node.identifier}`);
-    }
-
     const identifier = node.identifier;
     const value = this.visit(node.value);
 
-    this.write(identifier, value);
+    try {
+      this.memory.write(identifier, value);
+    } catch (e) {
+      this.error(`${e}`);
+    }
 
     return value;
   }
@@ -116,7 +100,15 @@ export class Interpreter {
   visit_read(node: Read): number {
     const identifier = node.identifier;
 
-    return this.read(identifier);
+    let value: number;
+
+    try {
+      value = this.memory.read(identifier);
+    } catch (e) {
+      this.error(`${e}`);
+    }
+
+    return value;
   }
 
   visit_number(node: Number): number {

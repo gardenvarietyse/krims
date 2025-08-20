@@ -19,8 +19,6 @@ export class Lexer {
   _line: number = 1;
   _position: number;
 
-  current_token?: Token;
-
   constructor(text: string) {
     this.text = text;
     this._position = 0;
@@ -156,6 +154,12 @@ export class Lexer {
 
     if (is_equals(current_char)) {
       this._position += 1;
+
+      if (text[this._position] === '>') {
+        this._position += 1;
+        return new Token(TokenType.FatArrow);
+      }
+
       return new Token(TokenType.Equals);
     }
 
