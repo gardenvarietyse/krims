@@ -3,4 +3,4 @@
 - rewrite without classes?
 - ditch is_arithmetic_operator test
 - support const
--
+- comments

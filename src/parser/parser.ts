@@ -47,6 +47,12 @@ export class Parser {
     return token_type as T;
   }
 
+  maybeEat(...token_types: TokenType[]) {
+    if (token_types.includes(this.current_token.type)) {
+      this.eat(...token_types);
+    }
+  }
+
   atom(): Read | Number | UnaryOp | BinaryOp {
     if (this.current_token.type === TokenType.Identifier) {
       const identifier_token = this.current_token;
@@ -189,11 +195,22 @@ export class Parser {
     while (true) {
       statements.push(this.expr());
 
-      const maybe_eof = this.current_token.type;
+      const maybe_end = this.current_token.type;
       this.eat(...SEPARATOR);
 
-      if (maybe_eof === TokenType.EOF) {
+      if (maybe_end === TokenType.EOF) {
         break;
+      }
+
+      if (
+        SEPARATOR.includes(maybe_end) &&
+        this.lexer.peek().type === TokenType.EOF
+      ) {
+        break;
+      }
+
+      while (SEPARATOR.includes(this.current_token.type)) {
+        this.maybeEat(...SEPARATOR);
       }
     }
 
