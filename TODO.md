@@ -1,6 +1,8 @@
+- multiple types
+- function definition, invocation
+- support const
 - have Lexer generate all tokens up front
 - Parser consumes list of tokens
 - rewrite without classes?
 - ditch is_arithmetic_operator test
-- support const
 - comments
